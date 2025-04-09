@@ -14,7 +14,7 @@ export default {
     type: 'admin',
     routes: [
       {
-        method: 'GET',
+        method: 'POST',
         path: '/export-csv',
         handler: 'myController.getData',
         config: {

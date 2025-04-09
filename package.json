@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.0.12",
   "keywords": [],
   "type": "commonjs",
   "exports": {
@@ -61,11 +61,11 @@
   },
   "strapi": {
     "kind": "plugin",
-    "name": "export-import",
+    "name": "export-import-strapi5-plugin",
     "displayName": "Export import csv plugin",
     "description": ""
   },
-  "name": "export-import",
+  "name": "export-import-strapi5-plugin",
   "description": "",
   "license": "MIT",
   "author": "maxim <borisov130490@gmail.com>"
