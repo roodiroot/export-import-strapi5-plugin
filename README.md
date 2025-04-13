@@ -13,8 +13,6 @@
 npm install export-import-strapi5-plugin
 ```
 
-````
-
 ## Configuration
 
 Add to `./config/plugins.js`:
@@ -111,4 +109,3 @@ After installation:
 ```
 
 ```
-````
