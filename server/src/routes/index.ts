@@ -15,6 +15,15 @@ export default {
     routes: [
       {
         method: 'POST',
+        path: '/get-config',
+        handler: 'myController.getConfig',
+        config: {
+          policies: [],
+          auth: false,
+        },
+      },
+      {
+        method: 'POST',
         path: '/export-csv',
         handler: 'myController.getData',
         config: {

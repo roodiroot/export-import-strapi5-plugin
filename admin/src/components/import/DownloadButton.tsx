@@ -1,4 +1,5 @@
 import { Download } from '@strapi/icons';
+import { useEffect, useState } from 'react';
 import { Button } from '@strapi/design-system';
 import { useFetchClient } from '@strapi/strapi/admin';
 import {
@@ -6,16 +7,34 @@ import {
   useQueryParams,
 } from '@strapi/strapi/admin';
 
-import { PLUGIN_ID } from '../../pluginId';
+import { PLUGIN_ID } from '../../../../pluginId';
+import { getConfig } from '../../../src/api/config';
 
 export const DownloadButton = () => {
+  const [config, setConfig] = useState<string[] | null>(null);
+
   const { model } = useContentManagerContext();
   const [{ query }, setQuery] = useQueryParams();
   const { post, get } = useFetchClient();
 
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const configData = await getConfig();
+      const configModels = Object.keys(configData);
+      setConfig(configModels);
+    };
+
+    fetchConfig();
+  }, []);
+
+  // console.log(config);
+
+  if (!config) return null;
+  if (!config?.includes(model)) return null;
+
   const fetchData = async () => {
     try {
-      const response = await post(`/${PLUGIN_ID}/export-csv`, { data: query });
+      const response = await post(`/${PLUGIN_ID}/export-csv`, { data: query, modelName: model });
 
       // Создаем Blob из строки CSV
       const blob = new Blob([response.data.csv], { type: 'text/csv;charset=utf-8;' });
@@ -39,8 +58,6 @@ export const DownloadButton = () => {
       console.error('Ошибка при получении данных:', error);
     }
   };
-
-  if (model !== 'api::product.product') return null;
 
   return (
     <Button startIcon={<Download />} onClick={fetchData}>

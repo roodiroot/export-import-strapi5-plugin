@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFetchClient } from '@strapi/strapi/admin';
 import { CheckCircle, File as IconFile, Upload } from '@strapi/icons';
 import { Modal, Button, Typography, Flex, Box, Loader } from '@strapi/design-system';
 import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
 
-import { PLUGIN_ID } from '../../pluginId';
+import { PLUGIN_ID } from '../../../../pluginId';
 import { useAlerts } from '../../hooks/useAlerts';
+import { getConfig } from '../../../src/api/config';
 
 import styled from 'styled-components';
 
@@ -18,7 +19,6 @@ const LoaderWrapper = styled.div`
   background-color: rgba(255, 255, 255, 0.05); /* Полупрозрачный белый фон */
   backdrop-filter: blur(2px); /* Лёгкое размытие */
 `;
-
 const Label = styled.label`
   --hover-color: hsl(210, 100%, 50%);
   --success-color: hsl(133, 65.3%, 48.6%) position: relative;
@@ -51,7 +51,6 @@ const Label = styled.label`
     display: none;
   }
 `;
-
 const DragOverLabel = styled(Label)`
   &.dragged-over {
     border-color: var(--hover-color);
@@ -68,7 +67,6 @@ const DragOverLabel = styled(Label)`
     }
   }
 `;
-
 const IconWrapper = styled.span`
   height: 100px;
   svg {
@@ -82,11 +80,10 @@ const IconWrapper = styled.span`
 `;
 
 export const UploadButton = () => {
-  const { model } = useContentManagerContext();
   const { notify } = useAlerts();
   const { post } = useFetchClient();
-
-  if (model !== 'api::product.product') return null;
+  const { model } = useContentManagerContext();
+  const [entities, setEntities] = useState<string[] | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<{ name: string; size: number } | null>(null);
@@ -95,12 +92,26 @@ export const UploadButton = () => {
   const [uploadSuccessful, setUploadSuccessful] = useState(false);
   const [uploadingData, setUploadingData] = useState(false);
 
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const configData = await getConfig();
+      const configModels = Object.keys(configData);
+      setEntities(configModels);
+    };
+
+    fetchConfig();
+  }, []);
+
+  if (!entities) return null;
+  if (!entities?.includes(model)) return null;
+
   const uploadData = async () => {
     if (!file) return;
 
     setUploadingData(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('modelName', model);
     try {
       const response = await post(`/${PLUGIN_ID}/import-csv`, formData);
       if (response.data.success && response.data.updated) {
@@ -123,14 +134,12 @@ export const UploadButton = () => {
       setUploadingData(false);
     }
   };
-
   const onReadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       const file = e.target.files[0];
       readFile(file);
     }
   };
-
   const readFile = (file: File) => {
     if (file.type === 'text/csv' || /\.csv$/i.test(file.name)) {
       const reader = new FileReader();
@@ -157,29 +166,24 @@ export const UploadButton = () => {
       throw new Error(`File type ${file.type} not supported.`);
     }
   };
-
   const resetDataSource = () => {
     setData('');
     setFile(null);
     setFileName(null);
   };
-
   const handleDragEnter = (e: React.DragEvent<HTMLLabelElement>) => {
     // console.log('ЕЛЕМЕНТ ВХОДИТ В ОБЛАСТЬ');
     e.preventDefault();
     e.stopPropagation();
   };
-
   const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
     // console.log('Файл над областью');
     e.preventDefault();
     e.stopPropagation();
   };
-
   const handleDragLeave = () => {
     // console.log('Файл покинул область');
   };
-
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     e.stopPropagation();
